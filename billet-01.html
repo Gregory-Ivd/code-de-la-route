@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code de la Route — Billet 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --asphalt:#1c2023;
+    --asphalt-2:#252a2e;
+    --lane:#eeeee6;
+    --lane-dim:#8b8f8f;
+    --sign-blue:#0b4f8a;
+    --sign-blue-dark:#08395f;
+    --sign-red:#c1121f;
+    --sign-yellow:#f4b400;
+    --go-green:#2e7d32;
+    --paper:#f5f3ec;
+    --ink:#1c2023;
+    --muted:#6b7075;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(180deg, transparent 0 40px, rgba(255,255,255,0.02) 40px 42px),
+      var(--asphalt);
+    color:var(--lane);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+  }
+  .app{width:100%;max-width:720px;}
+
+  /* ---- Header / gantry ---- */
+  .gantry{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .gantry-sign{
+    display:inline-block;
+    background:var(--sign-blue);
+    border:3px solid var(--lane);
+    border-radius:4px;
+    padding:14px 28px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .gantry-sign h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    font-size:1.5rem;
+    margin:0;
+    color:var(--lane);
+  }
+  .gantry-sub{
+    font-size:0.8rem;
+    color:var(--lane-dim);
+    margin-top:8px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+
+  /* ---- Road progress bar ---- */
+  .road{
+    position:relative;
+    height:34px;
+    background:#2b2f33;
+    border-radius:6px;
+    margin-bottom:26px;
+    overflow:hidden;
+    border:1px solid #3a3f44;
+  }
+  .road-line{
+    position:absolute;
+    top:50%;
+    left:0;
+    width:100%;
+    height:3px;
+    transform:translateY(-50%);
+    background-image:repeating-linear-gradient(90deg, var(--lane) 0 18px, transparent 18px 34px);
+    opacity:0.5;
+  }
+  .road-fill{
+    position:absolute;
+    top:0;left:0;bottom:0;
+    width:0%;
+    background:rgba(46,125,50,0.35);
+    transition:width .35s ease;
+  }
+  .road-car{
+    position:absolute;
+    top:50%;
+    transform:translate(-50%,-50%);
+    font-size:1.1rem;
+    transition:left .35s ease;
+    left:0%;
+  }
+  .road-count{
+    position:absolute;
+    right:10px;top:50%;transform:translateY(-50%);
+    font-family:'Oswald',sans-serif;
+    font-size:0.8rem;
+    color:var(--lane);
+    background:rgba(0,0,0,0.35);
+    padding:2px 8px;
+    border-radius:3px;
+  }
+
+  /* ---- Screens ---- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .panel{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:8px;
+    padding:28px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  /* Intro */
+  .intro h2{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    font-size:1.3rem;
+    margin-top:0;
+    border-left:6px solid var(--sign-red);
+    padding-left:12px;
+  }
+  .intro p{line-height:1.55;color:#3a3f44;}
+  .intro ul{color:#3a3f44;line-height:1.7;padding-left:20px;}
+  .btn{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    font-weight:600;
+    font-size:0.95rem;
+    border:none;
+    border-radius:5px;
+    padding:14px 26px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--go-green);color:#fff;}
+  .btn-primary:hover{box-shadow:0 4px 14px rgba(46,125,50,0.5);}
+  .btn-secondary{background:transparent;border:2px solid var(--sign-blue);color:var(--sign-blue);}
+  .btn-block{width:100%;}
+  .btn-row{display:flex;gap:12px;margin-top:22px;}
+
+  /* Question card */
+  .q-badge{
+    display:inline-block;
+    font-family:'Oswald',sans-serif;
+    font-size:0.75rem;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    background:var(--sign-yellow);
+    color:#3a2a00;
+    padding:3px 10px;
+    border-radius:3px;
+    margin-bottom:12px;
+    font-weight:600;
+  }
+  .q-text{
+    font-size:1.15rem;
+    line-height:1.5;
+    font-weight:600;
+    margin:0 0 20px;
+  }
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .option{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    border:2px solid #d8d4c6;
+    background:#fff;
+    border-radius:6px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+    line-height:1.4;
+  }
+  .option:hover{border-color:var(--sign-blue);}
+  .option.selected{border-color:var(--sign-blue);background:#eaf2fa;}
+  .option input{margin-top:3px;accent-color:var(--sign-blue);}
+  .qa-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+  .qa-footer .btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* Results */
+  .permit-card{
+    background:linear-gradient(135deg,#0b4f8a,#08395f);
+    color:#fff;
+    border-radius:10px;
+    padding:26px;
+    position:relative;
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+  .permit-card::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(115deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 14px);
+  }
+  .permit-eyebrow{
+    font-family:'Oswald',sans-serif;
+    font-size:0.75rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    opacity:0.75;
+  }
+  .permit-score{
+    font-family:'Oswald',sans-serif;
+    font-size:3rem;
+    font-weight:700;
+    margin:6px 0 4px;
+  }
+  .permit-detail{font-size:0.9rem;opacity:0.85;}
+  .stamp{
+    position:absolute;
+    right:22px;
+    top:26px;
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.3rem;
+    letter-spacing:2px;
+    padding:8px 16px;
+    border:4px solid currentColor;
+    border-radius:8px;
+    transform:rotate(-8deg);
+    text-transform:uppercase;
+  }
+  .stamp.pass{color:#5fd86b;}
+  .stamp.fail{color:#ff6b6b;}
+
+  .review-item{
+    border-bottom:1px solid #e3dfd0;
+    padding:16px 0;
+  }
+  .review-item:last-child{border-bottom:none;}
+  .review-q{font-weight:600;margin-bottom:8px;line-height:1.4;}
+  .review-line{font-size:0.92rem;line-height:1.5;margin:4px 0;}
+  .tag-wrong{color:var(--sign-red);font-weight:600;}
+  .tag-right{color:var(--go-green);font-weight:600;}
+  .explain{
+    background:#efece0;
+    border-left:4px solid var(--sign-yellow);
+    padding:10px 12px;
+    margin-top:8px;
+    font-size:0.9rem;
+    border-radius:0 4px 4px 0;
+    color:#3a3f44;
+  }
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .filter-btn{
+    font-family:'Oswald',sans-serif;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    background:#e6e2d3;
+    border:none;
+    padding:6px 12px;
+    border-radius:14px;
+    cursor:pointer;
+    color:#3a3f44;
+  }
+  .filter-btn.active{background:var(--sign-blue);color:#fff;}
+
+  footer.note{
+    text-align:center;
+    color:var(--lane-dim);
+    font-size:0.75rem;
+    margin-top:22px;
+    line-height:1.5;
+  }
+
+  @media (max-width:480px){
+    .panel{padding:20px;}
+    .permit-score{font-size:2.2rem;}
+    .stamp{font-size:1rem;right:14px;top:18px;padding:6px 10px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="gantry">
+    <div class="gantry-sign">
+      <h1>Code de la route</h1>
+    </div>
+    <div class="gantry-sub">Billet 1 · Examen blanc · 40 questions</div>
+    <div style="margin-top:10px;"><a href="index.html" style="color:var(--lane-dim);font-size:0.8rem;text-decoration:underline;">&larr; Tous les billets</a></div>
+  </div>
+
+  <div class="road" id="roadBar">
+    <div class="road-fill" id="roadFill"></div>
+    <div class="road-line"></div>
+    <div class="road-car" id="roadCar">🚗</div>
+    <div class="road-count" id="roadCount">0 / 40</div>
+  </div>
+
+  <!-- INTRO SCREEN -->
+  <div class="screen active" id="screen-intro">
+    <div class="panel intro">
+      <h2>Avant de démarrer</h2>
+      <p>Cet examen blanc reprend le format de l'épreuve théorique générale (ETG) : <strong>40 questions</strong>, une seule bonne réponse par question. Comme le jour J, il faut un maximum de <strong>5 erreurs</strong> (35/40) pour être reçu.</p>
+      <ul>
+        <li>Chaque question porte sur une règle réelle du Code de la route (vitesses, alcool, points de permis, priorités, signalisation…).</li>
+        <li>Vous ne pouvez pas revenir en arrière une fois la réponse validée.</li>
+        <li>À la fin, vous obtenez un relevé détaillé de toutes vos erreurs avec l'explication de la règle.</li>
+      </ul>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="startExam()">Démarrer l'examen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="screen-quiz">
+    <div class="panel">
+      <div class="q-badge" id="qCategory">Catégorie</div>
+      <p class="q-text" id="qText">Question</p>
+      <div class="options" id="qOptions"></div>
+      <div class="qa-footer">
+        <span style="font-size:0.85rem;color:var(--muted);" id="qProgressLabel"></span>
+        <button class="btn btn-primary" id="nextBtn" disabled onclick="nextQuestion()">Valider</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="screen" id="screen-results">
+    <div class="permit-card">
+      <div class="permit-eyebrow">Résultat de l'examen</div>
+      <div class="permit-score" id="resScore">0 / 40</div>
+      <div class="permit-detail" id="resDetail">0 erreur(s)</div>
+      <div class="stamp" id="resStamp">—</div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:1.15rem;margin-top:0;border-left:6px solid var(--sign-blue);padding-left:12px;">Corrigé détaillé</h2>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Toutes (40)</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">Erreurs uniquement</button>
+      </div>
+      <div id="reviewList"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-block" onclick="location.reload()">Repasser l'examen</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Tronc de questions basé sur le Code de la route en vigueur en France (barèmes 2026). Outil d'entraînement — ne remplace pas la consultation de Légifrance ou d'une auto-école agréée.</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {cat:"Vitesses", q:"Quelle est la vitesse maximale autorisée en agglomération, sauf signalisation contraire ?", options:["30 km/h","50 km/h","70 km/h"], correct:1, ex:"La vitesse par défaut en agglomération est de 50 km/h. Certaines communes abaissent cette limite à 30 km/h sur une partie de leur réseau, mais 50 km/h reste la règle générale."},
+  {cat:"Vitesses", q:"Hors agglomération, sur une route à double sens sans séparateur central, la vitesse est en principe limitée à :", options:["70 km/h","80 km/h","90 km/h"], correct:1, ex:"Depuis le 1er juillet 2018, la vitesse par défaut sur ces routes est de 80 km/h. Certains départements peuvent relever ponctuellement la limite à 90 km/h sur des tronçons précis, signalés en conséquence."},
+  {cat:"Vitesses", q:"Sur autoroute, par temps sec, la vitesse maximale autorisée est de :", options:["110 km/h","120 km/h","130 km/h"], correct:2, ex:"130 km/h est la vitesse maximale légale sur autoroute par temps sec et bonne visibilité. Elle descend à 110 km/h en cas de pluie ou de visibilité réduite."},
+  {cat:"Vitesses", q:"Sur autoroute, en cas de pluie, la vitesse maximale autorisée passe à :", options:["90 km/h","110 km/h","120 km/h"], correct:1, ex:"La pluie ou toute chaussée mouillée abaisse automatiquement la limite autoroutière de 130 à 110 km/h, pour compenser l'allongement des distances de freinage."},
+  {cat:"Vitesses", q:"Pendant la période probatoire, la vitesse maximale sur autoroute est de :", options:["100 km/h","110 km/h","130 km/h"], correct:1, ex:"Les conducteurs en période probatoire sont plafonnés à 110 km/h sur autoroute (au lieu de 130 km/h), et ce quelles que soient les conditions météo."},
+  {cat:"Vitesses", q:"Pendant la période probatoire, sur une route à deux chaussées séparées par un terre-plein central, la vitesse maximale est de :", options:["90 km/h","100 km/h","110 km/h"], correct:1, ex:"Le plafond probatoire sur voie express (chaussées séparées) est de 100 km/h, contre 110 km/h pour un conducteur confirmé."},
+  {cat:"Vitesses", q:"Un excès de vitesse de 45 km/h au-dessus de la limite autorisée est aujourd'hui qualifié de :", options:["Simple contravention","Délit","Avertissement sans suite"], correct:1, ex:"Depuis le 29 décembre 2025, tout excès de vitesse égal ou supérieur à 50 km/h constitue un délit. À 45 km/h, on reste dans le régime contraventionnel (classe 4), mais avec des sanctions déjà lourdes ; le seuil délictuel se situe précisément à 50 km/h."},
+  {cat:"Vitesses", q:"Un dépassement de vitesse de 55 km/h au-dessus de la limite entraîne notamment :", options:["Un simple rappel à la loi","Un retrait de points sans autre conséquence","Une suspension de permis pouvant aller jusqu'à 6 mois et un retrait de 6 points"], correct:2, ex:"Au-delà de 50 km/h de dépassement, l'infraction est un délit : suspension immédiate possible jusqu'à 6 mois, amende pouvant atteindre 1 500 € (3 750 € en récidive) et retrait de 6 points."},
+  {cat:"Vitesses", q:"Un excès de vitesse compris entre 1 et 4 km/h au-dessus de la limite retenue entraîne-t-il un retrait de points ?", options:["Oui, systématiquement 1 point","Non, depuis le 1er janvier 2024","Oui, mais seulement en agglomération"], correct:1, ex:"Depuis le 1er janvier 2024, les dépassements inférieurs à 5 km/h ne font plus perdre de points, même si l'amende forfaitaire reste due."},
+  {cat:"Alcool & stupéfiants", q:"Quel est le taux d'alcoolémie maximal autorisé pour un conducteur titulaire du permis depuis plus de 3 ans ?", options:["0,2 g/L de sang","0,5 g/L de sang","0,8 g/L de sang"], correct:1, ex:"Le seuil légal général est de 0,5 gramme d'alcool par litre de sang (soit 0,25 mg/L d'air expiré)."},
+  {cat:"Alcool & stupéfiants", q:"Pendant la période probatoire, le taux d'alcoolémie maximal autorisé est de :", options:["0,0 g/L strictement","0,2 g/L de sang","0,5 g/L de sang"], correct:1, ex:"Les conducteurs novices (période probatoire) sont soumis à un seuil abaissé de 0,2 g/L de sang, soit une tolérance quasi nulle."},
+  {cat:"Alcool & stupéfiants", q:"Conduire avec des stupéfiants dans le sang combiné à une alcoolémie supérieure à 0,5 g/L constitue :", options:["Une simple contravention", "Une circonstance aggravante, avec des peines pouvant atteindre 3 ans de prison et 9 000 € d'amende", "Un motif de sursis automatique"], correct:1, ex:"Cette combinaison est traitée comme une circonstance aggravante par la loi, avec des sanctions pénales renforcées."},
+  {cat:"Points de permis", q:"Combien de points comporte un permis de conduire pour un conducteur confirmé (hors période probatoire) ?", options:["6 points","10 points","12 points"], correct:2, ex:"Le capital maximal est de 12 points pour un conducteur ayant terminé sa période probatoire sans infraction majeure."},
+  {cat:"Points de permis", q:"Un conducteur qui vient d'obtenir son permis (formation classique, hors conduite accompagnée) démarre avec :", options:["6 points","8 points","12 points"], correct:0, ex:"En période probatoire classique, le permis démarre avec un capital de 6 points, qui augmente progressivement pour atteindre 12 points au bout de 3 ans sans infraction."},
+  {cat:"Points de permis", q:"Le non-port de la ceinture de sécurité entraîne :", options:["Un retrait de 1 point", "Un retrait de 3 points et une amende", "Aucun retrait de points, seulement une amende"], correct:1, ex:"Le défaut de port de la ceinture est sanctionné par un retrait de 3 points, en plus de l'amende forfaitaire."},
+  {cat:"Points de permis", q:"L'usage d'un téléphone tenu en main au volant entraîne :", options:["Un retrait de 3 points et une amende de 135 €", "Un simple avertissement", "Un retrait de 1 point uniquement"], correct:0, ex:"Tenir son téléphone en main en conduisant coûte 3 points et une amende forfaitaire de 135 €. Seuls les systèmes mains-libres sont tolérés."},
+  {cat:"Priorités", q:"En l'absence de toute signalisation, à une intersection de deux routes de même importance, la priorité revient :", options:["Au véhicule le plus rapide", "Au véhicule venant de la droite", "Au véhicule le plus gros"], correct:1, ex:"C'est la règle de la priorité à droite : en l'absence de panneau, chaque conducteur doit céder le passage au véhicule arrivant de sa droite."},
+  {cat:"Priorités", q:"Dans un rond-point (giratoire) non muni de feux, sans autre indication contraire, la priorité appartient en général :", options:["Aux véhicules déjà engagés dans l'anneau", "Aux véhicules qui s'apprêtent à entrer", "Au premier arrivé, quel que soit le sens"], correct:0, ex:"En France, sauf signalisation contraire, les véhicules circulant déjà dans le giratoire sont prioritaires ; ceux qui souhaitent y entrer doivent céder le passage, généralement annoncé par un panneau « Cédez le passage »."},
+  {cat:"Priorités", q:"À un passage piéton non muni de feux, un piéton qui a commencé à traverser :", options:["Doit laisser passer les véhicules", "Est prioritaire et le conducteur doit s'arrêter", "N'a aucune priorité particulière"], correct:1, ex:"Le conducteur doit céder le passage à tout piéton déjà engagé sur un passage piéton, ou manifestant clairement son intention de traverser."},
+  {cat:"Signalisation", q:"Un panneau de forme triangulaire à bordure rouge signale en général :", options:["Une interdiction", "Un danger", "Une obligation"], correct:1, ex:"Les panneaux triangulaires à bordure rouge sont des panneaux de danger, annonçant un risque particulier sur la route à venir."},
+  {cat:"Signalisation", q:"Un panneau rond à fond blanc et bordure rouge signale en général :", options:["Une interdiction", "Une indication utile", "Un danger"], correct:0, ex:"Les panneaux ronds à bordure rouge sur fond blanc indiquent une interdiction (sens interdit, interdiction de dépasser, limitation de vitesse, etc.)."},
+  {cat:"Signalisation", q:"Un panneau rond à fond bleu signale en général :", options:["Une obligation", "Un danger", "Une interdiction"], correct:0, ex:"Les panneaux ronds à fond bleu indiquent une obligation (direction obligatoire, piste cyclable obligatoire, vitesse minimale, etc.)."},
+  {cat:"Signalisation", q:"Au panneau STOP, le conducteur doit :", options:["Ralentir fortement sans nécessairement s'arrêter", "Marquer un arrêt total, même si aucune voie n'est visible comme dangereuse", "S'arrêter seulement si un autre véhicule est visible"], correct:1, ex:"Le STOP impose un arrêt complet du véhicule, quelles que soient les circonstances, avant de céder le passage et de repartir."},
+  {cat:"Signalisation", q:"Au panneau « Cédez le passage », l'arrêt du véhicule est-il toujours obligatoire ?", options:["Oui, systématiquement", "Non, seulement si la situation l'exige pour céder la priorité", "Non, ce panneau ne concerne que les piétons"], correct:1, ex:"Contrairement au STOP, « Cédez le passage » n'impose pas un arrêt total systématique : il oblige à ralentir et, si nécessaire, à s'arrêter pour laisser la priorité aux autres usagers."},
+  {cat:"Signalisation", q:"Dans une « zone 30 », la vitesse maximale autorisée est de :", options:["20 km/h", "30 km/h", "50 km/h"], correct:1, ex:"Comme son nom l'indique, une zone 30 limite la vitesse à 30 km/h pour l'ensemble des véhicules qui y circulent."},
+  {cat:"Signalisation", q:"Dans une « zone de rencontre », la vitesse est limitée à :", options:["20 km/h, piétons prioritaires", "30 km/h, priorité aux véhicules", "50 km/h comme en agglomération"], correct:0, ex:"La zone de rencontre limite la vitesse à 20 km/h et donne aux piétons la priorité sur l'ensemble de la chaussée, y compris hors passage piéton."},
+  {cat:"Sécurité routière", q:"La règle empirique de distance de sécurité entre deux véhicules qui se suivent correspond à un intervalle minimal d'environ :", options:["0,5 seconde", "2 secondes", "5 secondes"], correct:1, ex:"On retient généralement un intervalle minimal de 2 secondes entre deux véhicules par conditions normales, permettant de réagir et freiner en cas de besoin."},
+  {cat:"Sécurité routière", q:"En cas d'arrêt d'urgence ou de danger imminent pour la circulation, le conducteur doit notamment :", options:["Klaxonner en continu uniquement", "Allumer ses feux de détresse", "Faire des appels de phares uniquement"], correct:1, ex:"Les feux de détresse doivent être utilisés pour signaler un arrêt d'urgence, un danger ou un ralentissement brutal, afin d'avertir les autres usagers."},
+  {cat:"Sécurité routière", q:"En cas de panne ou d'accident immobilisant le véhicule sur la chaussée, le conducteur doit notamment :", options:["Rester dans le véhicule en toutes circonstances", "Placer un triangle de présignalisation et revêtir un gilet haute visibilité avant de sortir du véhicule", "Attendre les secours sans signaler le véhicule"], correct:1, ex:"Il faut baliser le véhicule avec un triangle de présignalisation et porter un gilet rétroréfléchissant, idéalement avant de descendre du véhicule, pour assurer sa propre sécurité et celle des autres usagers."},
+  {cat:"Points de permis", q:"Lorsqu'un conducteur atteint 0 point sur son permis, cela entraîne :", options:["Une simple amende", "L'invalidation du permis, avec obligation de repasser les examens", "Un simple avertissement écrit"], correct:1, ex:"Arriver à 0 point entraîne l'invalidation du permis de conduire : le conducteur doit rendre son titre et repasser le code et, selon le cas, la conduite."},
+  {cat:"Circulation urbaine", q:"Les zones à faibles émissions mobilité (ZFE-m) conditionnent la circulation de certains véhicules à :", options:["Un contrôle technique récent uniquement", "L'apposition d'une vignette Crit'Air adaptée", "Une autorisation municipale individuelle"], correct:1, ex:"Dans les ZFE-m, l'accès des véhicules est conditionné à la vignette Crit'Air correspondant à leur niveau de pollution, les plus polluants étant progressivement exclus."},
+  {cat:"Deux-roues", q:"Le port du casque homologué est obligatoire pour :", options:["Uniquement les motards sur autoroute", "Tout conducteur et passager de moto ou cyclomoteur", "Uniquement si la vitesse dépasse 50 km/h"], correct:1, ex:"Le port du casque homologué et attaché est obligatoire pour le conducteur et tout passager d'une moto ou d'un cyclomoteur, quelle que soit la route empruntée."},
+  {cat:"Vitesses", q:"En agglomération, un excès de vitesse compris entre 5 et 19 km/h au-dessus de la limite est sanctionné par une contravention de :", options:["1ère classe", "3ème classe", "4ème classe"], correct:2, ex:"En agglomération (limite à 50 km/h), un tel dépassement relève d'une contravention de 4ème classe (135 €), avec retrait d'un point."},
+  {cat:"Vitesses", q:"Hors agglomération, un excès de vitesse compris entre 5 et 19 km/h au-dessus de la limite est sanctionné par une contravention de :", options:["3ème classe", "4ème classe", "5ème classe"], correct:0, ex:"Hors agglomération, ce même type de dépassement modéré relève d'une contravention de 3ème classe (68 €), avec retrait d'un point."},
+  {cat:"Vitesses", q:"Un excès de vitesse de 35 km/h au-dessus de la limite autorisée entraîne un retrait de :", options:["1 point", "3 points", "6 points"], correct:1, ex:"Un dépassement compris entre 30 et 39 km/h est une contravention de 4ème classe entraînant un retrait de 3 points, avec risque de suspension judiciaire du permis."},
+  {cat:"Priorités", q:"Sur autoroute, avant de s'engager, un conducteur venant d'une bretelle d'insertion doit :", options:["S'arrêter systématiquement sur la bande d'arrêt d'urgence", "S'insérer en cédant le passage aux véhicules déjà présents sur l'autoroute", "Forcer le passage car il est prioritaire"], correct:1, ex:"Les véhicules circulant déjà sur l'autoroute sont prioritaires : celui qui s'insère doit adapter sa vitesse et céder le passage si nécessaire."},
+  {cat:"Stationnement", q:"Un stationnement qui gêne la circulation sans la mettre en danger est qualifié de stationnement :", options:["Gênant", "Dangereux", "Toléré"], correct:0, ex:"On distingue le stationnement gênant (qui entrave la circulation ou l'usage normal de la voie) du stationnement dangereux (qui crée un risque direct pour la sécurité), ce dernier étant sanctionné plus sévèrement."},
+  {cat:"Contrôles", q:"Depuis 2026, les tests salivaires de dépistage de stupéfiants sont utilisés de façon systématique :", options:["Uniquement lors des contrôles aléatoires de nuit", "Après tout accident corporel", "Uniquement à la demande du conducteur"], correct:1, ex:"Les tests salivaires sont désormais systématiques après tout accident corporel, et leur usage est étendu lors des contrôles routiers courants."},
+  {cat:"Points de permis", q:"Le stage de sensibilisation à la sécurité routière permet, dans certaines limites, de :", options:["Récupérer jusqu'à 4 points en 2 jours", "Effacer définitivement toutes ses infractions passées", "Obtenir un doublement automatique de son capital de points"], correct:0, ex:"Suivre volontairement un stage agréé de sécurité routière (2 jours) permet de récupérer jusqu'à 4 points, dans la limite du plafond légal du permis."},
+  {cat:"Sécurité routière", q:"Le port de la ceinture de sécurité est-il obligatoire pour les passagers assis à l'arrière du véhicule ?", options:["Non, seulement à l'avant", "Oui, pour tous les occupants équipés d'une ceinture", "Seulement hors agglomération"], correct:1, ex:"La ceinture de sécurité est obligatoire pour tous les occupants du véhicule, à l'avant comme à l'arrière, dès lors que le siège est équipé d'une ceinture."}
+];
+
+let current = 0;
+let answers = []; // {selected, correct, locked}
+
+function startExam(){
+  document.getElementById('screen-intro').classList.remove('active');
+  document.getElementById('screen-quiz').classList.add('active');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('qText').textContent = (current+1) + ". " + q.q;
+  document.getElementById('qProgressLabel').textContent = "Question " + (current+1) + " sur " + QUESTIONS.length;
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const div = document.createElement('label');
+    div.className = 'option';
+    div.innerHTML = `<input type="radio" name="opt" value="${idx}"> <span>${opt}</span>`;
+    div.addEventListener('click', () => selectOption(idx));
+    opts.appendChild(div);
+  });
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('nextBtn').textContent = (current === QUESTIONS.length - 1) ? 'Voir les résultats' : 'Valider';
+  updateRoad();
+}
+
+function selectOption(idx){
+  document.querySelectorAll('.option').forEach((el,i) => {
+    el.classList.toggle('selected', i === idx);
+    el.querySelector('input').checked = (i === idx);
+  });
+  document.getElementById('nextBtn').disabled = false;
+  document.getElementById('nextBtn').dataset.selected = idx;
+}
+
+function nextQuestion(){
+  const btn = document.getElementById('nextBtn');
+  const selected = parseInt(btn.dataset.selected);
+  const q = QUESTIONS[current];
+  answers.push({selected: selected, correct: q.correct, isCorrect: selected === q.correct});
+  current++;
+  if(current < QUESTIONS.length){
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function updateRoad(){
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById('roadFill').style.width = pct + '%';
+  document.getElementById('roadCar').style.left = pct + '%';
+  document.getElementById('roadCount').textContent = current + ' / ' + QUESTIONS.length;
+}
+
+function showResults(){
+  document.getElementById('screen-quiz').classList.remove('active');
+  document.getElementById('screen-results').classList.add('active');
+  updateRoad();
+  document.getElementById('roadFill').style.width='100%';
+  document.getElementById('roadCar').style.left='100%';
+  document.getElementById('roadCount').textContent = QUESTIONS.length + ' / ' + QUESTIONS.length;
+
+  const score = answers.filter(a => a.isCorrect).length;
+  const errors = QUESTIONS.length - score;
+  const pass = errors <= 5;
+
+  document.getElementById('resScore').textContent = score + ' / ' + QUESTIONS.length;
+  document.getElementById('resDetail').textContent = errors + ' erreur(s) — ' + (pass ? 'seuil de réussite : max. 5 erreurs' : 'seuil de réussite dépassé (max. 5 erreurs)');
+  const stamp = document.getElementById('resStamp');
+  stamp.textContent = pass ? 'Reçu' : 'Ajourné';
+  stamp.className = 'stamp ' + (pass ? 'pass' : 'fail');
+
+  renderReview('all');
+}
+
+let currentFilter = 'all';
+function setFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderReview(f);
+}
+
+function renderReview(filter){
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const a = answers[i];
+    if(filter === 'wrong' && a.isCorrect) return;
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const userAnswerText = q.options[a.selected] !== undefined ? q.options[a.selected] : '(sans réponse)';
+    const correctText = q.options[q.correct];
+    div.innerHTML = `
+      <div class="review-q">${i+1}. ${q.q}</div>
+      <div class="review-line">${a.isCorrect ? '<span class="tag-right">✓ Correct</span>' : '<span class="tag-wrong">✗ Erreur</span>'} — votre réponse : ${userAnswerText}</div>
+      ${a.isCorrect ? '' : `<div class="review-line">Bonne réponse : <strong>${correctText}</strong></div>`}
+      <div class="explain">${q.ex}</div>
+    `;
+    list.appendChild(div);
+  });
+  if(list.innerHTML === ''){
+    list.innerHTML = '<p style="color:var(--muted);">Aucune erreur — sans faute ! 🎉</p>';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code de la Route — Billets d'entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --asphalt:#1c2023;
+    --lane:#eeeee6;
+    --lane-dim:#8b8f8f;
+    --sign-blue:#0b4f8a;
+    --sign-blue-dark:#08395f;
+    --sign-red:#c1121f;
+    --sign-yellow:#f4b400;
+    --go-green:#2e7d32;
+    --paper:#f5f3ec;
+    --ink:#1c2023;
+    --muted:#6b7075;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(180deg, transparent 0 40px, rgba(255,255,255,0.02) 40px 42px),
+      var(--asphalt);
+    color:var(--lane);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+  }
+  .app{width:100%;max-width:720px;}
+  .gantry{text-align:center;margin-bottom:22px;}
+  .gantry-sign{
+    display:inline-block;
+    background:var(--sign-blue);
+    border:3px solid var(--lane);
+    border-radius:4px;
+    padding:14px 28px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .gantry-sign h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    font-size:1.5rem;
+    margin:0;
+    color:var(--lane);
+  }
+  .gantry-sub{
+    font-size:0.8rem;
+    color:var(--lane-dim);
+    margin-top:8px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .panel{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:8px;
+    padding:28px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  }
+  .panel p{line-height:1.55;color:#3a3f44;}
+  .panel h2{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    font-size:1.15rem;
+    margin-top:0;
+    border-left:6px solid var(--sign-red);
+    padding-left:12px;
+  }
+  .billet-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    gap:12px;
+    margin-top:20px;
+  }
+  .billet-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border:2px solid #d8d4c6;
+    background:#fff;
+    border-radius:6px;
+    padding:16px 10px;
+    text-decoration:none;
+    color:var(--ink);
+    transition:border-color .12s ease, transform .12s ease;
+  }
+  .billet-card.available:hover{border-color:var(--sign-blue);transform:translateY(-2px);}
+  .billet-card.available .num{color:var(--sign-blue);}
+  .billet-card.locked{opacity:0.45;cursor:default;}
+  .billet-card .num{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:1.4rem;
+  }
+  .billet-card .label{
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+  }
+  footer.note{
+    text-align:center;
+    color:var(--lane-dim);
+    font-size:0.75rem;
+    margin-top:22px;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="gantry">
+    <div class="gantry-sign">
+      <h1>Code de la route</h1>
+    </div>
+    <div class="gantry-sub">Billets d'entraînement · Format ETG</div>
+  </div>
+
+  <div class="panel">
+    <h2>Choisissez un billet</h2>
+    <p>Chaque billet est un examen blanc indépendant de 40 questions, au format de l'épreuve théorique générale (ETG) : une seule bonne réponse, seuil de réussite à 35/40, corrigé détaillé avec explication à la fin.</p>
+    <div class="billet-grid" id="billetGrid"></div>
+  </div>
+
+  <footer class="note">Outil d'entraînement basé sur le Code de la route en vigueur en France. Ne remplace pas la consultation de Légifrance ou d'une auto-école agréée.</footer>
+</div>
+
+<script>
+  // Total de billets prévus dans le programme (extensible). AVAILABLE indique ceux déjà publiés.
+  const TOTAL_BILLETS = 15;
+  const AVAILABLE = [1];
+
+  const grid = document.getElementById('billetGrid');
+  for(let i = 1; i <= TOTAL_BILLETS; i++){
+    const isAvailable = AVAILABLE.includes(i);
+    const num = String(i).padStart(2, '0');
+    const el = document.createElement(isAvailable ? 'a' : 'div');
+    el.className = 'billet-card ' + (isAvailable ? 'available' : 'locked');
+    if(isAvailable) el.href = 'billet-' + num + '.html';
+    el.innerHTML = `<span class="num">${i}</span><span class="label">${isAvailable ? 'Billet' : 'À venir'}</span>`;
+    grid.appendChild(el);
+  }
+</script>
+</body>
+</html>
