@@ -454,7 +454,7 @@ function showTrResult(containerId, data, idx){
 }
 
 function selectOption(idx){
-  document.querySelectorAll('.option').forEach((el,i) => {
+  document.querySelectorAll('#qOptions .option').forEach((el,i) => {
     el.classList.toggle('selected', i === idx);
     el.querySelector('input').checked = (i === idx);
   });

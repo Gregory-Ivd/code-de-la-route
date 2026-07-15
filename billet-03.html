@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code de la Route — Billet 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --asphalt:#1c2023;
+    --asphalt-2:#252a2e;
+    --lane:#eeeee6;
+    --lane-dim:#8b8f8f;
+    --sign-blue:#0b4f8a;
+    --sign-blue-dark:#08395f;
+    --sign-red:#c1121f;
+    --sign-yellow:#f4b400;
+    --go-green:#2e7d32;
+    --paper:#f5f3ec;
+    --ink:#1c2023;
+    --muted:#6b7075;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(180deg, transparent 0 40px, rgba(255,255,255,0.02) 40px 42px),
+      var(--asphalt);
+    color:var(--lane);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+  }
+  .app{width:100%;max-width:720px;}
+
+  .gantry{text-align:center;margin-bottom:22px;}
+  .gantry-sign{
+    display:inline-block;
+    background:var(--sign-blue);
+    border:3px solid var(--lane);
+    border-radius:4px;
+    padding:14px 28px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .gantry-sign h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    font-size:1.5rem;
+    margin:0;
+    color:var(--lane);
+  }
+  .gantry-sub{
+    font-size:0.8rem;
+    color:var(--lane-dim);
+    margin-top:8px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+
+  .road{
+    position:relative;height:34px;background:#2b2f33;border-radius:6px;
+    margin-bottom:26px;overflow:hidden;border:1px solid #3a3f44;
+  }
+  .road-line{
+    position:absolute;top:50%;left:0;width:100%;height:3px;transform:translateY(-50%);
+    background-image:repeating-linear-gradient(90deg, var(--lane) 0 18px, transparent 18px 34px);
+    opacity:0.5;
+  }
+  .road-fill{position:absolute;top:0;left:0;bottom:0;width:0%;background:rgba(46,125,50,0.35);transition:width .35s ease;}
+  .road-car{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:1.1rem;transition:left .35s ease;left:0%;}
+  .road-count{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    font-family:'Oswald',sans-serif;font-size:0.8rem;color:var(--lane);
+    background:rgba(0,0,0,0.35);padding:2px 8px;border-radius:3px;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .panel{background:var(--paper);color:var(--ink);border-radius:8px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+
+  .intro h2{
+    font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:1.3rem;margin-top:0;
+    border-left:6px solid var(--sign-red);padding-left:12px;
+  }
+  .intro p{line-height:1.55;color:#3a3f44;}
+  .theme-grid{
+    display:grid;grid-template-columns:1fr auto;gap:6px 14px;
+    font-size:0.85rem;color:#3a3f44;margin:14px 0 4px;
+    background:#efece0;border-radius:6px;padding:14px 16px;
+  }
+  .theme-grid strong{color:var(--ink);}
+  .btn{
+    font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;
+    font-size:0.95rem;border:none;border-radius:5px;padding:14px 26px;cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--go-green);color:#fff;}
+  .btn-primary:hover{box-shadow:0 4px 14px rgba(46,125,50,0.5);}
+  .btn-secondary{background:transparent;border:2px solid var(--sign-blue);color:var(--sign-blue);}
+  .btn-block{width:100%;}
+  .btn-row{display:flex;gap:12px;margin-top:22px;}
+
+  .q-badge{
+    display:inline-block;font-family:'Oswald',sans-serif;font-size:0.75rem;letter-spacing:0.5px;
+    text-transform:uppercase;background:var(--sign-yellow);color:#3a2a00;padding:3px 10px;
+    border-radius:3px;margin-bottom:12px;font-weight:600;
+  }
+  .q-text{font-size:1.15rem;line-height:1.5;font-weight:600;margin:0 0 20px;}
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .option{
+    display:flex;align-items:flex-start;gap:12px;border:2px solid #d8d4c6;background:#fff;
+    border-radius:6px;padding:12px 14px;cursor:pointer;transition:border-color .12s ease, background .12s ease;
+    line-height:1.4;
+  }
+  .option:hover{border-color:var(--sign-blue);}
+  .option.selected{border-color:var(--sign-blue);background:#eaf2fa;}
+  .option input{margin-top:3px;accent-color:var(--sign-blue);}
+  .qa-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px;}
+  .qa-footer .btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .permit-card{
+    background:linear-gradient(135deg,#0b4f8a,#08395f);color:#fff;border-radius:10px;
+    padding:26px;position:relative;overflow:hidden;margin-bottom:24px;
+  }
+  .permit-card::before{
+    content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(115deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 14px);
+  }
+  .permit-eyebrow{font-family:'Oswald',sans-serif;font-size:0.75rem;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;}
+  .permit-score{font-family:'Oswald',sans-serif;font-size:3rem;font-weight:700;margin:6px 0 4px;}
+  .permit-detail{font-size:0.9rem;opacity:0.85;}
+  .stamp{
+    position:absolute;right:22px;top:26px;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.3rem;
+    letter-spacing:2px;padding:8px 16px;border:4px solid currentColor;border-radius:8px;
+    transform:rotate(-8deg);text-transform:uppercase;
+  }
+  .stamp.pass{color:#5fd86b;}
+  .stamp.fail{color:#ff6b6b;}
+
+  .review-item{border-bottom:1px solid #e3dfd0;padding:16px 0;}
+  .review-item:last-child{border-bottom:none;}
+  .review-q{font-weight:600;margin-bottom:8px;line-height:1.4;}
+  .review-cat{
+    display:inline-block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.4px;
+    color:var(--sign-blue);font-weight:700;margin-bottom:6px;
+  }
+  .review-line{font-size:0.92rem;line-height:1.5;margin:4px 0;}
+  .tag-wrong{color:var(--sign-red);font-weight:600;}
+  .tag-right{color:var(--go-green);font-weight:600;}
+  .explain{
+    background:#efece0;border-left:4px solid var(--sign-yellow);padding:10px 12px;margin-top:8px;
+    font-size:0.9rem;border-radius:0 4px 4px 0;color:#3a3f44;
+  }
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .filter-btn{
+    font-family:'Oswald',sans-serif;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.4px;
+    background:#e6e2d3;border:none;padding:6px 12px;border-radius:14px;cursor:pointer;color:#3a3f44;
+  }
+  .filter-btn.active{background:var(--sign-blue);color:#fff;}
+
+  .btn-translate{
+    font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:600;
+    background:transparent;border:2px solid var(--sign-blue);color:var(--sign-blue);
+    border-radius:20px;padding:6px 14px;cursor:pointer;margin-top:12px;
+  }
+  .btn-translate:hover{background:#eaf2fa;}
+  .tr-quiz{margin-top:10px;background:#eef2f6;border-radius:6px;padding:12px 14px;}
+  .tr-quiz-label{font-size:0.85rem;font-weight:600;color:var(--ink);margin-bottom:8px;}
+  .tr-option{padding:9px 12px;font-size:0.9rem;}
+  .tr-result{margin-top:2px;padding:10px 12px;border-radius:0 4px 4px 0;font-size:0.9rem;line-height:1.45;}
+  .tr-result.correct{background:#e6f4e8;border-left:4px solid var(--go-green);color:#1e4620;}
+  .tr-result.wrong{background:#fbe9e7;border-left:4px solid var(--sign-red);color:#5c1a1a;}
+  .tr-verdict{font-weight:700;margin-bottom:4px;}
+
+  footer.note{text-align:center;color:var(--lane-dim);font-size:0.75rem;margin-top:22px;line-height:1.5;}
+
+  @media (max-width:480px){
+    .panel{padding:20px;}
+    .permit-score{font-size:2.2rem;}
+    .stamp{font-size:1rem;right:14px;top:18px;padding:6px 10px;}
+    .theme-grid{grid-template-columns:1fr auto;font-size:0.78rem;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="gantry">
+    <div class="gantry-sign"><h1>Code de la route</h1></div>
+    <div class="gantry-sub">Billet 3 · Examen blanc · 40 questions</div>
+    <div style="margin-top:10px;"><a href="index.html" style="color:var(--lane-dim);font-size:0.8rem;text-decoration:underline;">&larr; Tous les billets</a></div>
+  </div>
+
+  <div class="road" id="roadBar">
+    <div class="road-fill" id="roadFill"></div>
+    <div class="road-line"></div>
+    <div class="road-car" id="roadCar">🚗</div>
+    <div class="road-count" id="roadCount">0 / 40</div>
+  </div>
+
+  <div class="screen active" id="screen-intro">
+    <div class="panel intro">
+      <h2>Billet n°3 — nouvelle série</h2>
+      <p>Même format que l'épreuve officielle : <strong>40 questions</strong>, seuil de réussite à <strong>35/40</strong> (5 erreurs maximum). Ce billet ne reprend aucune question des billets n°1 et n°2 : nouveaux faits, nouvelles formulations, mêmes exigences de précision. Répartition par thème identique à l'ETG réel :</p>
+      <div class="theme-grid">
+        <span>Le conducteur</span><strong>10</strong>
+        <span>Les autres usagers de la route</span><strong>5</strong>
+        <span>Circulation routière</span><strong>4</strong>
+        <span>Mécanique et équipements</span><strong>4</strong>
+        <span>La route</span><strong>4</strong>
+        <span>Notions diverses</span><strong>3</strong>
+        <span>Prendre et quitter son véhicule</span><strong>3</strong>
+        <span>Sécurité du passager</span><strong>3</strong>
+        <span>Environnement</span><strong>3</strong>
+        <span>Premiers secours</span><strong>1</strong>
+      </div>
+      <p>À la fin, vous obtenez un relevé détaillé de vos erreurs, avec la règle exacte pour chacune.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="startExam()">Démarrer l'examen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-quiz">
+    <div class="panel">
+      <div class="q-badge" id="qCategory">Catégorie</div>
+      <p class="q-text" id="qText">Question</p>
+      <div class="options" id="qOptions"></div>
+      <div id="qTranslateBox"></div>
+      <div class="qa-footer">
+        <span style="font-size:0.85rem;color:var(--muted);" id="qProgressLabel"></span>
+        <button class="btn btn-primary" id="nextBtn" disabled onclick="nextQuestion()">Valider</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-results">
+    <div class="permit-card">
+      <div class="permit-eyebrow">Résultat de l'examen — billet n°3</div>
+      <div class="permit-score" id="resScore">0 / 40</div>
+      <div class="permit-detail" id="resDetail">0 erreur(s)</div>
+      <div class="stamp" id="resStamp">—</div>
+    </div>
+
+    <div class="panel">
+      <h2 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:1.15rem;margin-top:0;border-left:6px solid var(--sign-blue);padding-left:12px;">Corrigé détaillé</h2>
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Toutes (40)</button>
+        <button class="filter-btn" data-filter="wrong" onclick="setFilter('wrong')">Erreurs uniquement</button>
+      </div>
+      <div id="reviewList"></div>
+      <div class="btn-row">
+        <button class="btn btn-secondary btn-block" onclick="location.reload()">Repasser ce billet</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Billet n°3 — banque de questions distincte des billets n°1 et n°2, conforme aux 10 thèmes officiels et aux barèmes du Code de la route en vigueur en 2026. Outil d'entraînement — ne remplace pas la consultation de Légifrance ou d'une auto-école agréée.</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  // ---- Le conducteur (10) ----
+  {cat:"Le conducteur", q:"Lorsque la vitesse d'un véhicule double, sa distance de freinage est :", options:["Doublée elle aussi", "Multipliée par 4", "Multipliée par 1,5"], correct:1, ex:"La distance de freinage varie avec le carré de la vitesse : doubler la vitesse (par exemple de 50 à 100 km/h) multiplie la distance de freinage par 4, et non par 2.",
+    qTr:{opts:["Про залежність гальмівного шляху від подвоєння швидкості","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Коли швидкість автомобіля подвоюється, його гальмівний шлях не подвоюється, а збільшується у 4 рази."},
+    exTr:{opts:["Про те, що гальмівний шлях залежить від квадрата швидкості","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Гальмівний шлях змінюється пропорційно квадрату швидкості: подвоєння швидкості (наприклад, з 50 до 100 км/год) збільшує гальмівний шлях у 4 рази, а не у 2."}},
+  {cat:"Le conducteur", q:"Pour éliminer l'alcool présent dans le sang, un conducteur peut :", options:["Boire du café fort ou prendre une douche froide", "Faire de l'exercice physique intense", "Uniquement attendre, le foie éliminant l'alcool à un rythme d'environ 0,10 à 0,15 g/L par heure"], correct:2, ex:"Aucun moyen n'accélère l'élimination de l'alcool par l'organisme : ni le café, ni la douche froide, ni l'exercice. Seul le temps permet au foie d'éliminer l'alcool, à raison d'environ 0,10 à 0,15 g/L de sang par heure.",
+    qTr:{opts:["Про єдиний спосіб вивести алкоголь з організму — час","Про правила зупинки в тунелі","Про мінімальну глибину протектора"], correct:0, text:"Щоб вивести алкоголь із крові, водій може лише чекати — печінка виводить алкоголь зі швидкістю приблизно 0,10–0,15 г/л на годину."},
+    exTr:{opts:["Про те, що кава, душ і фізичні вправи не прискорюють виведення алкоголю","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Жоден спосіб не прискорює виведення алкоголю організмом: ні кава, ні холодний душ, ні фізичні вправи. Лише час дозволяє печінці вивести алкоголь, зі швидкістю приблизно 0,10–0,15 г/л крові на годину."}},
+  {cat:"Le conducteur", q:"Ralentir en prévision d'un danger permet de :", options:["Réduire uniquement la distance de freinage, pas le temps de réaction", "Réduire à la fois le temps de réaction et la distance de freinage", "Supprimer totalement le temps de réaction"], correct:0, ex:"Ralentir réduit la distance de freinage, mais pas le temps de réaction lui-même, qui reste d'environ 1 seconde chez un conducteur attentif. Seule l'anticipation d'un danger (par exemple lever le pied de l'accélérateur en prévision) peut raccourcir le temps de réaction effectif.",
+    qTr:{opts:["Про те, що зниження швидкості скорочує лише гальмівний шлях","Про правила проходження медогляду","Про мінімальну відстань обгону велосипедиста"], correct:0, text:"Зниження швидкості в очікуванні небезпеки скорочує лише гальмівний шлях, а не сам час реакції."},
+    exTr:{opts:["Про те, чому лише передбачення небезпеки скорочує час реакції","Про правила освітлення в тумані","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"Зниження швидкості скорочує гальмівний шлях, але не сам час реакції, який залишається приблизно 1 секундою в уважного водія. Лише передбачення небезпеки (наприклад, завчасне відпускання газу) може скоротити фактичний час реакції."}},
+  {cat:"Le conducteur", q:"Comparé à un conducteur expérimenté, un conducteur novice présente un risque d'être impliqué dans un accident mortel :", options:["Similaire, l'expérience ne joue pas de rôle notable", "Environ 4 fois plus élevé", "Plus faible, en raison d'une prudence accrue"], correct:1, ex:"Les statistiques de sécurité routière montrent qu'un conducteur novice a un risque d'accident mortel environ 4 fois supérieur à celui d'un conducteur expérimenté, ce qui justifie l'existence de la période probatoire.",
+    qTr:{opts:["Про підвищений ризик смертельної аварії для новачка","Про правила техогляду","Про мінімальну глибину протектора"], correct:0, text:"Порівняно з досвідченим водієм, новачок має приблизно у 4 рази вищий ризик потрапити в смертельну аварію."},
+    exTr:{opts:["Про статистику, яка обґрунтовує випробувальний період для новачків","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Статистика безпеки руху показує, що ризик смертельної аварії у водія-новачка приблизно у 4 рази вищий, ніж у досвідченого водія, що й обґрунтовує існування випробувального періоду."}},
+  {cat:"Le conducteur", q:"Sur chaussée mouillée, comparée à une chaussée sèche, la distance de freinage est :", options:["Identique", "Doublée", "Réduite d'un tiers"], correct:1, ex:"Sur chaussée mouillée, la distance de freinage est environ deux fois plus longue que sur chaussée sèche, en raison de la perte d'adhérence des pneus.",
+    qTr:{opts:["Про подовження гальмівного шляху на мокрій дорозі","Про правила проходження техогляду","Про мінімальну відстань до велосипедиста"], correct:0, text:"На мокрій дорозі, порівняно з сухою, гальмівний шлях подовжується вдвічі."},
+    exTr:{opts:["Про втрату зчеплення шин на мокрій дорозі як причину подовження шляху","Про правила освітлення в тумані","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"На мокрій дорозі гальмівний шлях приблизно вдвічі довший, ніж на сухій, через втрату зчеплення шин із покриттям."}},
+  {cat:"Le conducteur", q:"Utiliser un kit mains-libres pour téléphoner en conduisant :", options:["Supprime tout risque, seule la tenue du téléphone en main est dangereuse", "Réduit le risque à zéro si la conversation est courte", "Ne supprime pas le risque, car c'est la conversation elle-même qui détourne l'attention du conducteur"], correct:2, ex:"Même avec un kit mains-libres, la conversation téléphonique mobilise l'attention et dégrade la vigilance : le risque de distraction n'est pas supprimé, seulement la manipulation physique du téléphone.",
+    qTr:{opts:["Про те, що гарнітура «вільні руки» не усуває ризик відволікання","Про правила зупинки в тунелі","Про мінімальну глибину протектора"], correct:0, text:"Використання гарнітури «вільні руки» для розмови під час керування не усуває ризик, оскільки саме розмова відволікає увагу водія."},
+    exTr:{opts:["Про те, що саме розмова, а не тримання телефона, знижує увагу","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Навіть з гарнітурою «вільні руки» телефонна розмова забирає увагу і знижує пильність: ризик відволікання не зникає, зникає лише фізичне тримання телефону в руці."}},
+  {cat:"Le conducteur", q:"L'alcool a notamment pour effet de :", options:["Élargir le champ de vision périphérique", "Réduire le champ de vision périphérique (effet tunnel) et allonger le temps de récupération après un éblouissement", "Améliorer la perception des distances"], correct:1, ex:"L'alcool provoque un rétrécissement du champ de vision périphérique, souvent appelé « effet tunnel », et allonge le temps nécessaire pour retrouver une vision normale après un éblouissement.",
+    qTr:{opts:["Про звуження поля зору («тунельний ефект») від алкоголю","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Алкоголь, зокрема, звужує периферійне поле зору («тунельний ефект») і подовжує час відновлення зору після засліплення."},
+    exTr:{opts:["Про механізм «тунельного ефекту» та подовження відновлення після засліплення","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Алкоголь спричиняє звуження периферійного поля зору, часто зване «тунельним ефектом», і подовжує час, необхідний для відновлення нормального зору після засліплення."}},
+  {cat:"Le conducteur", q:"Un taux d'alcoolémie égal ou supérieur à 0,8 g/L de sang constitue :", options:["Une simple contravention comme en dessous de ce seuil", "Un délit, avec des sanctions pénales plus lourdes qu'entre 0,5 et 0,8 g/L", "Un seuil sans conséquence particulière"], correct:1, ex:"Entre 0,5 et 0,8 g/L de sang, l'infraction est une contravention. À partir de 0,8 g/L, elle devient un délit, exposant à des sanctions pénales nettement plus lourdes (amende, peine de prison encourue, suspension ou annulation du permis).",
+    qTr:{opts:["Про кримінальну відповідальність при рівні алкоголю від 0,8 г/л","Про правила освітлення транспорту","Про мінімальну глибину протектора"], correct:0, text:"Рівень алкоголю в крові від 0,8 г/л і вище є кримінальним правопорушенням із суворішими санкціями, ніж у діапазоні 0,5–0,8 г/л."},
+    exTr:{opts:["Про різницю покарань нижче і вище порогу 0,8 г/л","Про правила зупинки в тунелі","Про перевірку рівня масла"], correct:0, text:"Між 0,5 і 0,8 г/л крові порушення є адміністративним. Починаючи з 0,8 г/л, воно стає кримінальним правопорушенням із значно суворішими санкціями (штраф, можливе позбавлення волі, призупинення чи анулювання посвідчення)."}},
+  {cat:"Le conducteur", q:"Le permis de conduire de catégorie B permet en principe de conduire un véhicule dont le poids total autorisé en charge ne dépasse pas :", options:["2 tonnes", "3,5 tonnes, avec un maximum de 9 places", "5 tonnes"], correct:1, ex:"Le permis B autorise la conduite de véhicules dont le poids total autorisé en charge n'excède pas 3,5 tonnes, comptant au maximum 9 places (conducteur compris).",
+    qTr:{opts:["Про максимальну масу авто, дозволену категорією B","Про правила проходження медогляду","Про мінімальну відстань обгону велосипедиста"], correct:0, text:"Посвідчення категорії B в принципі дозволяє керувати автомобілем, повна дозволена маса якого не перевищує 3,5 тонни."},
+    exTr:{opts:["Про обмеження ваги та кількості місць для категорії B","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Посвідчення категорії B дозволяє керувати транспортними засобами, повна дозволена маса яких не перевищує 3,5 тонни, з максимум 9 місцями (включно з водієм)."}},
+  {cat:"Le conducteur", q:"Sur un long trajet, il est recommandé de faire une pause :", options:["Uniquement en cas de signe de somnolence avéré", "Toutes les deux heures environ, même sans signe de fatigue", "Uniquement après 5 heures de conduite continue"], correct:1, ex:"Il est recommandé de marquer une pause d'au moins 15 à 20 minutes toutes les deux heures environ sur un long trajet, avant même l'apparition de signes de fatigue, la vigilance diminuant progressivement avec la durée de conduite.",
+    qTr:{opts:["Про рекомендовану частоту зупинок у тривалій поїздці","Про правила техогляду","Про мінімальну глибину протектора"], correct:0, text:"У тривалій поїздці рекомендується робити зупинку приблизно кожні дві години, навіть без ознак втоми."},
+    exTr:{opts:["Про те, чому паузу варто робити ще до появи ознак втоми","Про правила освітлення вночі","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"У тривалій поїздці рекомендується робити паузу щонайменше 15–20 хвилин приблизно кожні дві години, ще до появи ознак втоми, оскільки пильність поступово знижується з тривалістю керування."}},
+  // ---- Les autres usagers de la route (5) ----
+  {cat:"Les autres usagers de la route", q:"Face à un véhicule prioritaire en intervention (gyrophare et avertisseur sonore activés), un conducteur doit :", options:["Le suivre pour profiter de sa priorité de passage", "Faciliter son passage, par exemple en se rangeant si possible, sans le suivre", "L'ignorer s'il roule déjà dans le respect du code"], correct:1, ex:"Il faut faciliter le passage d'un véhicule prioritaire en intervention (gyrophare et deux tons), par exemple en se rangeant sur le côté si la configuration le permet, mais on ne peut pas le suivre pour bénéficier soi-même de sa priorité.",
+    qTr:{opts:["Про поведінку водія перед пріоритетним авто з мигалкою","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Перед пріоритетним автомобілем на виклику (мигалка і сирена) водій повинен полегшити йому проїзд, наприклад, з'їхавши убік, а не їхати за ним."},
+    exTr:{opts:["Про те, чому не можна їхати за пріоритетним авто, щоб скористатися його привілеєм","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Потрібно полегшити проїзд пріоритетного автомобіля на виклику (мигалка і сирена), наприклад, з'їхавши убік, якщо дорога дозволяє, але не можна їхати за ним, щоб самому скористатися його пріоритетом."}},
+  {cat:"Les autres usagers de la route", q:"Avant de changer de file, en plus des rétroviseurs, il faut vérifier :", options:["L'angle mort, où un deux-roues peut se trouver sans être visible dans les rétroviseurs", "Uniquement le rétroviseur intérieur", "Rien de plus si le clignotant est enclenché"], correct:0, ex:"Les rétroviseurs ne couvrent pas tout le champ visuel : un contrôle de l'angle mort (par un coup d'œil direct par-dessus l'épaule) est indispensable, car un deux-roues peut s'y trouver sans être vu autrement.",
+    qTr:{opts:["Про перевірку мертвої зони перед зміною смуги","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Перш ніж змінити смугу, окрім дзеркал, потрібно перевірити мертву зону, де може перебувати мотоцикл чи велосипед, непомітний у дзеркалах."},
+    exTr:{opts:["Про те, чому погляд через плече обов'язковий перед зміною смуги","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Дзеркала не покривають усе поле зору: перевірка мертвої зони (прямим поглядом через плече) є обов'язковою, оскільки мотоцикл чи велосипед може перебувати там непомітно."}},
+  {cat:"Les autres usagers de la route", q:"Aux abords d'une école signalée, un conducteur doit :", options:["Maintenir sa vitesse habituelle si aucun enfant n'est visible", "Réduire sa vitesse et redoubler de vigilance, les enfants pouvant surgir de façon imprévisible", "Accélérer pour dégager rapidement la zone"], correct:1, ex:"Aux abords des écoles, la vigilance doit être renforcée et la vitesse réduite, car les enfants peuvent traverser ou surgir de manière brusque et imprévisible.",
+    qTr:{opts:["Про поведінку водія поблизу школи","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Поблизу позначеної школи водій повинен знизити швидкість і посилити увагу, оскільки діти можуть з'явитися непередбачувано."},
+    exTr:{opts:["Про необхідність посиленої уваги і зниженої швидкості біля шкіл","Про правила освітлення в тумані","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"Поблизу шкіл потрібно посилити увагу і знизити швидкість, оскільки діти можуть перебігати дорогу чи з'являтися різко й непередбачувано."}},
+  {cat:"Les autres usagers de la route", q:"En l'absence de trottoir, un piéton qui marche le long d'une route doit en principe circuler :", options:["Du côté droit, dans le sens de la circulation", "Du côté gauche, face à la circulation", "Au milieu de la chaussée"], correct:1, ex:"En l'absence de trottoir ou d'accotement praticable, un piéton doit en principe circuler du côté gauche de la route, face à la circulation, afin de voir les véhicules arriver et de pouvoir réagir.",
+    qTr:{opts:["Про те, з якого боку йде пішохід без тротуару","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"За відсутності тротуару пішохід, як правило, повинен іти лівим боком дороги, обличчям до транспортного потоку."},
+    exTr:{opts:["Про те, чому пішохід іде назустріч руху, а не за ним","Про правила освітлення вночі","Про перевірку тиску в шинах"], correct:0, text:"За відсутності тротуару чи придатної узбіччя пішохід, як правило, повинен іти лівим боком дороги, обличчям до транспортного потоку, щоб бачити авто, що наближаються, і встигнути зреагувати."}},
+  {cat:"Les autres usagers de la route", q:"Des cyclistes circulant à deux de front doivent se remettre en file simple :", options:["Uniquement s'ils le souhaitent", "Dès la tombée de la nuit ou dès qu'un véhicule cherche à les dépasser", "Uniquement sur autoroute"], correct:1, ex:"Le Code de la route autorise les cyclistes à rouler à deux de front, mais ils doivent se remettre en file simple dès la tombée de la nuit, en cas de mauvaise visibilité, ou dès qu'un véhicule s'apprête à les dépasser.",
+    qTr:{opts:["Про те, коли велосипедисти повинні їхати один за одним","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Велосипедисти, які їдуть по двоє в ряд, повинні перешикуватися в один ряд з настанням темряви або коли їх намагається обігнати авто."},
+    exTr:{opts:["Про умови, за яких велосипедисти зобов'язані їхати в один ряд","Про правила освітлення в тумані","Про перевірку рівня масла"], correct:0, text:"Правила дорожнього руху дозволяють велосипедистам їхати по двоє в ряд, але вони повинні перешикуватися в один ряд з настанням темряви, за поганої видимості або коли авто збирається їх обігнати."}},
+  // ---- Circulation routière (4) ----
+  {cat:"Circulation routière", q:"À un feu tricolore clignotant orange, un conducteur doit :", options:["S'arrêter obligatoirement, comme à un feu rouge", "Franchir le carrefour avec une prudence particulière, en respectant les règles de priorité normales", "Accélérer pour dégager le carrefour au plus vite"], correct:1, ex:"Un feu orange clignotant signale un danger et invite à une prudence particulière ; il ne remplace pas un arrêt obligatoire, mais les règles de priorité habituelles (priorité à droite, panneaux) continuent de s'appliquer.",
+    qTr:{opts:["Про поведінку водія на мигаючому жовтому світлофорі","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"На мигаючому жовтому світлі водій повинен проїхати перехрестя з особливою обережністю, дотримуючись звичайних правил пріоритету."},
+    exTr:{opts:["Про те, що мигаюче жовте не скасовує звичайні правила пріоритету","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Мигаюче жовте світло сигналізує про небезпеку і закликає до особливої обережності; воно не замінює обов'язкову зупинку, але звичайні правила пріоритету (пріоритет справа, знаки) продовжують діяти."}},
+  {cat:"Circulation routière", q:"Sur autoroute ou voie express, effectuer un demi-tour ou une marche arrière est :", options:["Autorisé en cas d'erreur d'itinéraire", "Interdit, sauf intervention des services autorisés", "Autorisé uniquement de nuit"], correct:1, ex:"Le demi-tour, la marche arrière et le stationnement sont interdits sur autoroute et voie express, sauf pour les véhicules de services autorisés (exploitation, secours, forces de l'ordre) en intervention.",
+    qTr:{opts:["Про заборону розвороту й заднього ходу на автомагістралі","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"На автомагістралі чи швидкісній дорозі розворот або рух заднім ходом заборонений, окрім спеціальних службових автомобілів."},
+    exTr:{opts:["Про виняток для службових авто (експлуатація, рятувальники, поліція)","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Розворот, рух заднім ходом і стоянка заборонені на автомагістралі та швидкісній дорозі, окрім уповноважених службових автомобілів (обслуговування, рятувальники, поліція) під час виконання завдання."}},
+  {cat:"Circulation routière", q:"Franchir une ligne continue au sol est :", options:["Toujours interdit, sans aucune exception", "Interdit, sauf notamment pour accéder à une propriété riveraine immédiatement accessible", "Autorisé si la visibilité est bonne"], correct:1, ex:"Une ligne continue ne peut en principe pas être franchie ; une exception existe notamment pour accéder directement à une propriété riveraine bordant la route, en traversant perpendiculairement.",
+    qTr:{opts:["Про виняток при перетині суцільної лінії для в'їзду на прилеглу ділянку","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Перетинати суцільну лінію заборонено, за винятком, зокрема, в'їзду на прилеглу ділянку, що межує з дорогою."},
+    exTr:{opts:["Про те, що суцільну лінію можна перетнути перпендикулярно для в'їзду на ділянку","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Суцільну лінію в принципі не можна перетинати; виняток існує, зокрема, для безпосереднього в'їзду на прилеглу ділянку, що межує з дорогою, перетинаючи лінію перпендикулярно."}},
+  {cat:"Circulation routière", q:"Dans certaines rues à sens unique, un panneau peut autoriser :", options:["Les cyclistes à circuler en sens inverse de la circulation générale (contresens cyclable)", "Uniquement les piétons à traverser en diagonale", "Les seuls véhicules prioritaires à circuler en sens inverse"], correct:0, ex:"Un panneau spécifique peut autoriser un contresens cyclable dans une rue à sens unique, permettant aux cyclistes de circuler en sens inverse de la circulation générale, en toute légalité.",
+    qTr:{opts:["Про дозвіл велосипедистам їхати проти руху на односторонній вулиці","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"На деяких односторонніх вулицях знак може дозволити велосипедистам рухатися в напрямку, протилежному загальному руху (велосипедний зустрічний рух)."},
+    exTr:{opts:["Про легальність велосипедного зустрічного руху за спеціальним знаком","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Спеціальний знак може дозволити велосипедний зустрічний рух на односторонній вулиці, легально дозволяючи велосипедистам рухатися в напрямку, протилежному загальному потоку."}},
+  // ---- Mécanique et équipements (4) ----
+  {cat:"Mécanique et équipements", q:"Pour un véhicule léger, le contrôle technique est obligatoire pour la première fois :", options:["1 an après la première mise en circulation", "4 ans après la première mise en circulation, puis tous les 2 ans", "Uniquement avant une revente"], correct:1, ex:"Le premier contrôle technique d'un véhicule léger est obligatoire 4 ans après sa première mise en circulation, puis il doit être renouvelé tous les 2 ans.",
+    qTr:{opts:["Про строки першого і наступного техогляду легкового авто","Про правила освітлення вночі","Про мінімальну дистанцію обгону"], correct:0, text:"Для легкового автомобіля перший техогляд обов'язковий через 4 роки після першої реєстрації, а потім кожні 2 роки."},
+    exTr:{opts:["Про періодичність техогляду після першого проходження","Про правила проходження медогляду водія","Про перевірку тиску в шинах"], correct:0, text:"Перший техогляд легкового автомобіля обов'язковий через 4 роки після першої реєстрації, після чого він повинен поновлюватися кожні 2 роки."}},
+  {cat:"Mécanique et équipements", q:"Si le voyant rouge de pression d'huile s'allume pendant la conduite, il faut :", options:["Continuer à rouler normalement jusqu'à destination", "Arrêter le véhicule dès que possible, un risque de dommage grave au moteur étant probable", "Attendre la prochaine révision programmée"], correct:1, ex:"Le voyant rouge de pression d'huile signale un problème grave et immédiat : il faut arrêter le véhicule dès que la sécurité le permet, sous peine d'endommager sérieusement le moteur.",
+    qTr:{opts:["Про дії водія при загорянні червоної лампочки тиску масла","Про правила освітлення в тумані","Про мінімальну глибину протектора"], correct:0, text:"Якщо під час руху загоряється червона лампочка тиску масла, потрібно зупинити автомобіль якнайшвидше, оскільки ймовірне серйозне пошкодження двигуна."},
+    exTr:{opts:["Про ризик серйозного пошкодження двигуна при ігноруванні лампочки","Про правила проходження техогляду","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"Червона лампочка тиску масла сигналізує про серйозну і невідкладну проблему: потрібно зупинити автомобіль, щойно це дозволяє безпека, інакше ризикуєте серйозно пошкодити двигун."}},
+  {cat:"Mécanique et équipements", q:"La pression des pneumatiques doit être contrôlée :", options:["Pneus chauds, après un long trajet", "Pneus froids, et adaptée à la charge transportée", "Une seule fois, à l'achat du véhicule"], correct:1, ex:"La pression des pneus doit être vérifiée à froid (véhicule n'ayant pas roulé depuis plusieurs heures) et ajustée selon la charge transportée, conformément aux préconisations du constructeur.",
+    qTr:{opts:["Про перевірку тиску в шинах на холодних колесах","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Тиск у шинах потрібно перевіряти на холодних шинах і з урахуванням перевезеного вантажу."},
+    exTr:{opts:["Про необхідність перевіряти тиск на холодних шинах згідно з рекомендаціями виробника","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Тиск у шинах потрібно перевіряти на холодних шинах (автомобіль не їздив кілька годин) і коригувати відповідно до перевезеного вантажу, згідно з рекомендаціями виробника."}},
+  {cat:"Mécanique et équipements", q:"Une ampoule de phare grillée doit être :", options:["Remplacée rapidement, l'éclairage étant essentiel pour voir et être vu", "Remplacée uniquement au prochain contrôle technique", "Laissée telle quelle si l'autre phare fonctionne"], correct:0, ex:"Un éclairage complet et fonctionnel est indispensable pour voir la route et être vu des autres usagers ; toute ampoule défectueuse doit être remplacée sans délai.",
+    qTr:{opts:["Про негайну заміну перегорілої лампи фари","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Перегорілу лампу фари потрібно замінити якнайшвидше, оскільки освітлення важливе, щоб бачити і бути видимим."},
+    exTr:{opts:["Про важливість повного освітлення для безпеки на дорозі","Про правила зупинки на пішохідному переході","Про перевірку тиску в шинах"], correct:0, text:"Повне й справне освітлення необхідне, щоб бачити дорогу і бути видимим для інших учасників руху; будь-яку несправну лампу потрібно замінити без затримки."}},
+  // ---- La route (4) ----
+  {cat:"La route", q:"Circuler ou s'arrêter sur la bande d'arrêt d'urgence d'une autoroute est :", options:["Autorisé pour dépasser un ralentissement", "Interdit, sauf urgence, panne ou intervention des services autorisés", "Autorisé uniquement de nuit"], correct:1, ex:"La bande d'arrêt d'urgence est réservée aux situations d'urgence, aux pannes et aux véhicules de services autorisés ; y circuler ou s'y arrêter sans motif valable est interdit.",
+    qTr:{opts:["Про заборону руху й зупинки на смузі аварійної зупинки","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Рух чи зупинка на смузі аварійної зупинки автомагістралі заборонені, окрім аварійної ситуації, поломки чи роботи уповноважених служб."},
+    exTr:{opts:["Про виняткові випадки, коли дозволено користуватися смугою аварійної зупинки","Про правила освітлення в тумані","Про перевірку рівня масла"], correct:0, text:"Смуга аварійної зупинки призначена для аварійних ситуацій, поломок і уповноважених службових автомобілів; рухатися чи зупинятися на ній без поважної причини заборонено."}},
+  {cat:"La route", q:"Sur chaussée verglacée ou enneigée, il convient de :", options:["Réduire fortement sa vitesse et éviter tout mouvement brusque au volant, au frein ou à l'accélérateur", "Rouler normalement en 4 roues motrices", "Freiner fort et brièvement dès le moindre doute"], correct:0, ex:"Sur une chaussée glissante, l'adhérence des pneus est très réduite : il faut ralentir fortement et effectuer tous les mouvements (freinage, accélération, direction) en douceur pour éviter de perdre le contrôle.",
+    qTr:{opts:["Про плавне керування на слизькій дорозі (лід, сніг)","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"На обмерзлій чи засніженій дорозі слід сильно знизити швидкість і уникати різких рухів кермом, гальмом чи газом."},
+    exTr:{opts:["Про те, чому плавність рухів запобігає втраті контролю на слизькій дорозі","Про правила освітлення вночі","Про перевірку рівня охолоджувальної рідини"], correct:0, text:"На слизькій дорозі зчеплення шин сильно знижене: потрібно значно знизити швидкість і виконувати всі дії (гальмування, газ, кермування) плавно, щоб уникнути втрати контролю."}},
+  {cat:"La route", q:"Sur une route à plusieurs voies dans le même sens, la voie de gauche est en principe réservée :", options:["Aux véhicules lents", "Au dépassement, avant de se rabattre à droite", "Aux véhicules prioritaires uniquement"], correct:1, ex:"La voie de gauche sert au dépassement : une fois la manœuvre terminée, il faut se rabattre sur la voie de droite plutôt que d'y circuler en continu.",
+    qTr:{opts:["Про призначення лівої смуги на багатосмуговій дорозі","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"На дорозі з кількома смугами в одному напрямку ліва смуга, як правило, призначена для обгону."},
+    exTr:{opts:["Про необхідність повернутися на праву смугу після обгону","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Ліва смуга використовується для обгону: після завершення маневру потрібно повернутися на праву смугу, а не рухатися лівою постійно."}},
+  {cat:"La route", q:"Face à un panneau signalant un risque de vent latéral fort (pont, viaduc, zone dégagée), il convient de :", options:["Accélérer pour traverser rapidement la zone", "Réduire sa vitesse et tenir fermement le volant pour anticiper les rafales", "Rouler au centre de la chaussée sans précaution particulière"], correct:1, ex:"Sur les portions exposées au vent latéral (ponts, viaducs, zones dégagées), il faut réduire sa vitesse et bien tenir le volant, une rafale pouvant déporter le véhicule brusquement.",
+    qTr:{opts:["Про поведінку водія в зоні сильного бічного вітру","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Перед знаком сильного бічного вітру (міст, естакада, відкрита місцевість) слід знизити швидкість і міцно тримати кермо, готуючись до поривів."},
+    exTr:{opts:["Про те, чому порив вітру може різко знести авто вбік","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"На ділянках, відкритих сильному бічному вітру (мости, естакади, відкрита місцевість), потрібно знизити швидкість і міцно тримати кермо, оскільки порив вітру може різко знести автомобіль убік."}},
+  // ---- Notions diverses (3) ----
+  {cat:"Notions diverses", q:"En cas de changement de propriétaire d'un véhicule, le certificat d'immatriculation (carte grise) doit être établi au nom du nouveau titulaire :", options:["Dans un délai d'un mois", "Sans délai précis, quand le nouveau propriétaire le souhaite", "Uniquement en cas de contrôle routier"], correct:0, ex:"Le nouveau titulaire d'un véhicule dispose d'un délai d'un mois après l'achat pour faire établir le certificat d'immatriculation à son nom.",
+    qTr:{opts:["Про строк переоформлення техпаспорта на нового власника","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"У разі зміни власника автомобіля свідоцтво про реєстрацію повинно бути переоформлене на нового власника протягом одного місяця."},
+    exTr:{opts:["Про місячний строк переоформлення техпаспорта після купівлі","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Новий власник транспортного засобу має один місяць після купівлі, щоб переоформити свідоцтво про реєстрацію на своє ім'я."}},
+  {cat:"Notions diverses", q:"Avec un permis B classique, tracter une remorque est possible sans formalité supplémentaire tant que son poids total autorisé en charge ne dépasse pas :", options:["350 kg", "750 kg", "1 500 kg"], correct:1, ex:"Le permis B permet de tracter une remorque dont le poids total autorisé en charge ne dépasse pas 750 kg sans mention ni formation complémentaire ; au-delà, des règles spécifiques (mention B96 ou permis BE selon les cas) s'appliquent.",
+    qTr:{opts:["Про максимальну вагу причепа без додаткової категорії на посвідченні B","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Зі звичайним посвідченням B можна буксирувати причіп без додаткових формальностей, якщо його повна дозволена маса не перевищує 750 кг."},
+    exTr:{opts:["Про додаткові вимоги (категорія B96 чи BE) для важчих причепів","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Посвідчення B дозволяє буксирувати причіп, повна дозволена маса якого не перевищує 750 кг, без додаткової позначки чи навчання; понад цю межу діють особливі правила (позначка B96 або категорія BE залежно від випадку)."}},
+  {cat:"Notions diverses", q:"Un permis de conduire français délivré pour la catégorie B est en principe valable :", options:["Uniquement sur le territoire français", "Dans l'ensemble des pays de l'Union européenne", "Uniquement dans les pays limitrophes de la France"], correct:1, ex:"Un permis de conduire délivré en France est en principe reconnu et valable dans l'ensemble des pays membres de l'Union européenne.",
+    qTr:{opts:["Про територію дії французького посвідчення категорії B","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Французьке посвідчення водія категорії B в принципі дійсне на території всіх країн Європейського Союзу."},
+    exTr:{opts:["Про визнання французького посвідчення в усіх країнах ЄС","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Посвідчення водія, видане у Франції, в принципі визнається і є дійсним на території всіх країн — членів Європейського Союзу."}},
+  // ---- Prendre et quitter son véhicule (3) ----
+  {cat:"Prendre et quitter son véhicule", q:"Avant de démarrer une manœuvre, il faut notamment vérifier :", options:["Que le frein de stationnement est desserré et qu'aucun obstacle ne gêne, via les rétroviseurs", "Uniquement que le moteur est chaud", "Uniquement la pression des pneus"], correct:0, ex:"Avant toute manœuvre, il faut s'assurer que le frein de stationnement est desserré et vérifier, à l'aide des rétroviseurs (et d'une caméra de recul le cas échéant), qu'aucun obstacle ne gêne le déplacement du véhicule.",
+    qTr:{opts:["Про перевірку гальма і перешкод перед маневром","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Перш ніж почати маневр, потрібно, зокрема, перевірити, що стоянкове гальмо відпущене і жодна перешкода не заважає, за допомогою дзеркал."},
+    exTr:{opts:["Про використання дзеркал і камери заднього виду для перевірки перешкод","Про правила освітлення вночі","Про перевірку тиску в шинах"], correct:0, text:"Перед будь-яким маневром потрібно переконатися, що стоянкове гальмо відпущене, і перевірити за допомогою дзеркал (і камери заднього виду, якщо є), що жодна перешкода не заважає руху автомобіля."}},
+  {cat:"Prendre et quitter son véhicule", q:"En quittant définitivement son véhicule stationné, il convient de :", options:["Laisser le contact pour faciliter un redémarrage rapide", "Couper le contact, serrer le frein de stationnement et verrouiller les portières", "Laisser les clés sur le contact par praticité"], correct:1, ex:"En quittant son véhicule, il faut couper le contact, serrer le frein de stationnement, retirer la clé (ou le badge) et verrouiller les portières, pour la sécurité du véhicule comme celle des autres.",
+    qTr:{opts:["Про дії водія, залишаючи припарковане авто","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Остаточно залишаючи припарковане авто, слід вимкнути запалювання, затягнути стоянкове гальмо і закрити двері на замок."},
+    exTr:{opts:["Про безпеку авто та інших людей при залишенні автомобіля","Про правила освітлення в тумані","Про перевірку рівня масла"], correct:0, text:"Залишаючи автомобіль, потрібно вимкнути запалювання, затягнути стоянкове гальмо, витягти ключ (чи картку) і замкнути двері — задля безпеки самого авто та інших людей."}},
+  {cat:"Prendre et quitter son véhicule", q:"Avant de sortir d'un véhicule à l'arrêt le long d'une chaussée circulée, il faut :", options:["Ouvrir rapidement la portière pour ne pas gêner la circulation", "S'assurer qu'aucun usager (véhicule, cycliste) n'approche, quel que soit le côté utilisé", "Vérifier uniquement le rétroviseur intérieur"], correct:1, ex:"Avant d'ouvrir complètement une portière, il faut s'assurer qu'aucun véhicule ni cycliste n'approche, des deux côtés du véhicule, pour éviter tout accident.",
+    qTr:{opts:["Про перевірку відсутності транспорту перед виходом з авто","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Перш ніж вийти з авто, зупиненого вздовж проїзної частини, потрібно переконатися, що жоден учасник руху (авто, велосипедист) не наближається, з будь-якого боку."},
+    exTr:{opts:["Про необхідність перевіряти обидва боки авто перед відкриванням дверей","Про правила освітлення вночі","Про перевірку тиску в шинах"], correct:0, text:"Перш ніж повністю відкрити двері, потрібно переконатися, що жоден автомобіль чи велосипедист не наближається, з обох боків автомобіля, щоб уникнути аварії."}},
+  // ---- Sécurité du passager (3) ----
+  {cat:"Sécurité du passager", q:"L'obligation du port de la ceinture de sécurité s'applique :", options:["Uniquement dans les véhicules personnels, pas dans un véhicule de location ou un utilitaire", "À tout occupant d'un siège équipé d'une ceinture, quel que soit le type de véhicule", "Uniquement sur autoroute"], correct:1, ex:"Le port de la ceinture est obligatoire pour tout occupant d'un siège équipé d'une ceinture, que ce soit dans un véhicule personnel, un utilitaire ou un véhicule de location.",
+    qTr:{opts:["Про обов'язковість ременя безпеки для будь-якого типу авто","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Обов'язок пристібати ремінь безпеки стосується будь-якого пасажира на сидінні, обладнаному ременем, незалежно від типу автомобіля."},
+    exTr:{opts:["Про те, що ремінь обов'язковий і в орендованому, і в службовому авто","Про правила освітлення в тумані","Про перевірку рівня масла"], correct:0, text:"Ремінь безпеки обов'язковий для будь-якого пасажира на сидінні, обладнаному ременем, будь то особистий автомобіль, службовий чи орендований."}},
+  {cat:"Sécurité du passager", q:"Le nombre de passagers transportés dans un véhicule ne doit pas dépasser :", options:["Le nombre de ceintures de sécurité disponibles uniquement", "Le nombre de places assises mentionné sur le certificat d'immatriculation", "Un nombre laissé à l'appréciation du conducteur"], correct:1, ex:"Le nombre d'occupants ne doit jamais dépasser le nombre de places assises indiqué sur le certificat d'immatriculation (carte grise) du véhicule.",
+    qTr:{opts:["Про максимальну кількість пасажирів згідно з техпаспортом","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Кількість пасажирів в автомобілі не повинна перевищувати кількість місць для сидіння, зазначену в свідоцтві про реєстрацію."},
+    exTr:{opts:["Про те, що техпаспорт, а не кількість ременів, визначає ліміт пасажирів","Про правила освітлення вночі","Про перевірку тиску в шинах"], correct:0, text:"Кількість пасажирів ніколи не повинна перевищувати кількість місць для сидіння, зазначену в свідоцтві про реєстрацію (техпаспорті) автомобіля."}},
+  {cat:"Sécurité du passager", q:"Des bagages ou objets lourds non arrimés à l'intérieur de l'habitacle ou dans le coffre :", options:["Ne présentent aucun danger particulier", "Peuvent être violemment projetés en cas de freinage brutal ou de choc", "Sont uniquement un problème d'ordre esthétique"], correct:1, ex:"En cas de freinage brutal ou de choc, un objet lourd non arrimé peut être projeté avec une force importante et blesser gravement les occupants : tout chargement dans l'habitacle ou le coffre doit être correctement fixé.",
+    qTr:{opts:["Про небезпеку незакріпленого важкого вантажу в салоні","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Незакріплений важкий багаж або предмети в салоні чи багажнику можуть бути сильно кинуті вперед при різкому гальмуванні чи ударі."},
+    exTr:{opts:["Про ризик серйозних травм пасажирів від незакріпленого вантажу","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"При різкому гальмуванні чи ударі незакріплений важкий предмет може бути кинутий зі значною силою і серйозно травмувати пасажирів: будь-який вантаж у салоні чи багажнику повинен бути належно закріплений."}},
+  // ---- Environnement (3) ----
+  {cat:"Environnement", q:"Par rapport à un véhicule thermique classique, un véhicule électrique ou hybride permet en général :", options:["D'augmenter systématiquement les émissions polluantes locales", "De réduire les émissions polluantes locales, selon l'usage qui en est fait", "N'a aucun effet sur les émissions"], correct:1, ex:"Un véhicule électrique ou hybride permet généralement de réduire les émissions polluantes locales par rapport à un véhicule thermique classique, l'ampleur du bénéfice dépendant de l'usage et du mode de production de l'énergie utilisée.",
+    qTr:{opts:["Про зменшення локальних викидів електро- чи гібридним авто","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Порівняно зі звичайним авто з двигуном внутрішнього згоряння, електричне чи гібридне авто зазвичай дозволяє зменшити локальні шкідливі викиди."},
+    exTr:{opts:["Про те, що вигода залежить від використання і способу виробництва енергії","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Електричне чи гібридне авто зазвичай дозволяє зменшити локальні шкідливі викиди порівняно зі звичайним авто з двигуном внутрішнього згоряння, причому розмір вигоди залежить від використання і способу виробництва енергії."}},
+  {cat:"Environnement", q:"Le covoiturage permet notamment de :", options:["Augmenter le nombre de véhicules nécessaires pour un même trajet", "Réduire le nombre de véhicules en circulation pour un même trajet, et donc les émissions associées", "N'a aucun impact sur l'environnement"], correct:1, ex:"En partageant un même véhicule pour un trajet, le covoiturage réduit le nombre de véhicules en circulation et donc les émissions de gaz à effet de serre associées à ce déplacement.",
+    qTr:{opts:["Про зменшення кількості авто завдяки спільним поїздкам","Про правила проходження техогляду","Про мінімальну глибину протектора"], correct:0, text:"Карпулінг (спільні поїздки), зокрема, дозволяє зменшити кількість автомобілів у русі для одного й того ж маршруту."},
+    exTr:{opts:["Про зменшення викидів парникових газів завдяки спільним поїздкам","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"Ділячись одним автомобілем для поїздки, карпулінг зменшує кількість автомобілів у русі, а отже, і викиди парникових газів, пов'язані з цією поїздкою."}},
+  {cat:"Environnement", q:"Une utilisation intensive de la climatisation ou des équipements électriques du véhicule a pour effet :", options:["De réduire la consommation de carburant", "D'augmenter la consommation de carburant", "De n'avoir aucun effet mesurable"], correct:1, ex:"La climatisation et les équipements électriques sollicitent le moteur ou la batterie : leur usage intensif augmente la consommation de carburant (ou l'autonomie consommée pour un véhicule électrique).",
+    qTr:{opts:["Про вплив активного використання кондиціонера на витрату палива","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Активне використання кондиціонера чи електрообладнання авто підвищує витрату палива."},
+    exTr:{opts:["Про те, що кондиціонер і електрообладнання навантажують двигун чи батарею","Про правила освітлення вночі","Про перевірку рівня масла"], correct:0, text:"Кондиціонер і електрообладнання навантажують двигун або батарею: їх активне використання підвищує витрату палива (або спожиту автономність для електроавто)."}},
+  // ---- Premiers secours (1) ----
+  {cat:"Premiers secours", q:"Face à une hémorragie externe abondante chez une victime consciente, il faut en priorité :", options:["Attendre l'arrivée des secours sans intervenir", "Comprimer fermement la plaie, si possible avec un tissu propre, en attendant les secours", "Donner à boire à la victime pour compenser la perte de sang"], correct:1, ex:"En cas d'hémorragie externe abondante, il faut comprimer fermement la plaie avec un tissu propre (ou à défaut la main) pour limiter la perte de sang, en attendant l'arrivée des secours ou en parallèle de leur alerte.",
+    qTr:{opts:["Про першу допомогу при сильній зовнішній кровотечі","Про правила проходження техогляду","Про мінімальну дистанцію обгону"], correct:0, text:"Перед сильною зовнішньою кровотечею у притомної людини потрібно насамперед сильно притиснути рану, бажано чистою тканиною, чекаючи на рятувальників."},
+    exTr:{opts:["Про те, чому притискання рани обмежує втрату крові","Про правила освітлення в тумані","Про перевірку тиску в шинах"], correct:0, text:"У разі сильної зовнішньої кровотечі потрібно сильно притиснути рану чистою тканиною (або, за відсутності такої, рукою), щоб обмежити втрату крові, чекаючи на прибуття рятувальників або одночасно викликаючи їх."}}
+];
+
+let current = 0;
+let answers = [];
+
+function startExam(){
+  document.getElementById('screen-intro').classList.remove('active');
+  document.getElementById('screen-quiz').classList.add('active');
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('qText').textContent = (current+1) + ". " + q.q;
+  document.getElementById('qProgressLabel').textContent = "Question " + (current+1) + " sur " + QUESTIONS.length;
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const div = document.createElement('label');
+    div.className = 'option';
+    div.innerHTML = `<input type="radio" name="opt" value="${idx}"> <span>${opt}</span>`;
+    div.addEventListener('click', () => selectOption(idx));
+    opts.appendChild(div);
+  });
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('nextBtn').textContent = (current === QUESTIONS.length - 1) ? 'Voir les résultats' : 'Valider';
+  renderTranslateWidget('qTranslateBox', q.qTr, 'q');
+  updateRoad();
+}
+
+function renderTranslateWidget(containerId, data, idPrefix){
+  const container = document.getElementById(containerId);
+  container.innerHTML = `<button class="btn-translate" id="${idPrefix}-trbtn">🇺🇦 Перекласти</button>`;
+  document.getElementById(idPrefix + '-trbtn').addEventListener('click', () => showTrQuiz(containerId, data, idPrefix));
+}
+
+function showTrQuiz(containerId, data, idPrefix){
+  const container = document.getElementById(containerId);
+  container.innerHTML = `<div class="tr-quiz"><div class="tr-quiz-label">Про що цей текст?</div><div class="options" id="${idPrefix}-tropts"></div></div>`;
+  const opts = document.getElementById(idPrefix + '-tropts');
+  data.opts.forEach((opt, idx) => {
+    const div = document.createElement('div');
+    div.className = 'option tr-option';
+    div.textContent = opt;
+    div.addEventListener('click', () => showTrResult(containerId, data, idx));
+    opts.appendChild(div);
+  });
+}
+
+function showTrResult(containerId, data, idx){
+  const container = document.getElementById(containerId);
+  const isCorrect = idx === data.correct;
+  container.innerHTML = `<div class="tr-result ${isCorrect ? 'correct' : 'wrong'}"><div class="tr-verdict">${isCorrect ? '✓ Вгадали, про що текст' : '✗ Не зовсім вгадали'}</div><div>${data.text}</div></div>`;
+}
+
+function selectOption(idx){
+  document.querySelectorAll('#qOptions .option').forEach((el,i) => {
+    el.classList.toggle('selected', i === idx);
+    el.querySelector('input').checked = (i === idx);
+  });
+  document.getElementById('nextBtn').disabled = false;
+  document.getElementById('nextBtn').dataset.selected = idx;
+}
+
+function nextQuestion(){
+  const btn = document.getElementById('nextBtn');
+  const selected = parseInt(btn.dataset.selected);
+  const q = QUESTIONS[current];
+  answers.push({selected: selected, correct: q.correct, isCorrect: selected === q.correct});
+  current++;
+  if(current < QUESTIONS.length){
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function updateRoad(){
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById('roadFill').style.width = pct + '%';
+  document.getElementById('roadCar').style.left = pct + '%';
+  document.getElementById('roadCount').textContent = current + ' / ' + QUESTIONS.length;
+}
+
+function showResults(){
+  document.getElementById('screen-quiz').classList.remove('active');
+  document.getElementById('screen-results').classList.add('active');
+  updateRoad();
+  document.getElementById('roadFill').style.width='100%';
+  document.getElementById('roadCar').style.left='100%';
+  document.getElementById('roadCount').textContent = QUESTIONS.length + ' / ' + QUESTIONS.length;
+
+  const score = answers.filter(a => a.isCorrect).length;
+  const errors = QUESTIONS.length - score;
+  const pass = errors <= 5;
+
+  document.getElementById('resScore').textContent = score + ' / ' + QUESTIONS.length;
+  document.getElementById('resDetail').textContent = errors + ' erreur(s) — ' + (pass ? 'seuil de réussite : max. 5 erreurs' : 'seuil de réussite dépassé (max. 5 erreurs)');
+  const stamp = document.getElementById('resStamp');
+  stamp.textContent = pass ? 'Reçu' : 'Ajourné';
+  stamp.className = 'stamp ' + (pass ? 'pass' : 'fail');
+
+  renderReview('all');
+}
+
+let currentFilter = 'all';
+function setFilter(f){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  renderReview(f);
+}
+
+function renderReview(filter){
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  QUESTIONS.forEach((q, i) => {
+    const a = answers[i];
+    if(filter === 'wrong' && a.isCorrect) return;
+    const div = document.createElement('div');
+    div.className = 'review-item';
+    const userAnswerText = q.options[a.selected] !== undefined ? q.options[a.selected] : '(sans réponse)';
+    const correctText = q.options[q.correct];
+    div.innerHTML = `
+      <div class="review-cat">${q.cat}</div>
+      <div class="review-q">${i+1}. ${q.q}</div>
+      <div class="review-line">${a.isCorrect ? '<span class="tag-right">✓ Correct</span>' : '<span class="tag-wrong">✗ Erreur</span>'} — votre réponse : ${userAnswerText}</div>
+      ${a.isCorrect ? '' : `<div class="review-line">Bonne réponse : <strong>${correctText}</strong></div>`}
+      <div class="explain">${q.ex}</div>
+      <div id="tr-ex-${i}"></div>
+    `;
+    list.appendChild(div);
+    renderTranslateWidget(`tr-ex-${i}`, q.exTr, `ex${i}`);
+  });
+  if(list.innerHTML === ''){
+    list.innerHTML = '<p style="color:var(--muted);">Aucune erreur — sans faute ! 🎉</p>';
+  }
+}
+</script>
+</body>
+</html>
